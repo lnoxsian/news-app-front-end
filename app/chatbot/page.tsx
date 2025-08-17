@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { GlobeAltIcon, UserIcon, ComputerDesktopIcon, MapPinIcon, XMarkIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { GlobeAltIcon, UserIcon, ComputerDesktopIcon, MapPinIcon, XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 
 interface Message {
   id: number
@@ -20,20 +20,56 @@ interface NewsCategory {
 }
 
 export default function ChatbotPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: "Hello! I'm your AI assistant. How can I help you today?",
-      sender: 'bot',
-      timestamp: new Date()
-    }
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
-  const [showQuickActions, setShowQuickActions] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [currentSlide, setCurrentSlide] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const headlines = [
+    {
+      id: 1,
+      title: "Breaking: Major Tech Announcement",
+      subtitle: "Revolutionary AI breakthrough changes everything",
+      emoji: "🚨",
+      category: "Technology",
+      time: "2 hours ago"
+    },
+    {
+      id: 2,
+      title: "Sports Championship Results",
+      subtitle: "Unprecedented victory in international tournament",
+      emoji: "🏆",
+      category: "Sports",
+      time: "4 hours ago"
+    },
+    {
+      id: 3,
+      title: "Climate Summit Updates",
+      subtitle: "World leaders reach historic climate agreement",
+      emoji: "🌍",
+      category: "Environment",
+      time: "6 hours ago"
+    },
+    {
+      id: 4,
+      title: "Election Results",
+      subtitle: "Surprising outcomes reshape political landscape",
+      emoji: "🗳️",
+      category: "Politics",
+      time: "8 hours ago"
+    },
+    {
+      id: 5,
+      title: "Market Updates",
+      subtitle: "Stock markets hit record highs amid positive outlook",
+      emoji: "📈",
+      category: "Finance",
+      time: "12 hours ago"
+    }
+  ]
 
   const newsCategories: NewsCategory[] = [
     {
@@ -69,6 +105,37 @@ export default function ChatbotPage() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Auto-advance carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => {
+        const nextSlide = prev + 1;
+        // Move by 1 but ensure we don't go past the last group of 3
+        return nextSlide >= headlines.length - 2 ? 0 : nextSlide;
+      });
+    }, 5000) // Change slide every 5 seconds
+
+    return () => clearInterval(interval)
+  }, [headlines.length])
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => {
+      const nextSlide = prev + 1;
+      return nextSlide >= headlines.length - 2 ? 0 : nextSlide;
+    });
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => {
+      const prevSlideIndex = prev - 1;
+      return prevSlideIndex < 0 ? Math.max(0, headlines.length - 3) : prevSlideIndex;
+    });
+  }
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(Math.min(index, headlines.length - 3))
+  }
 
   const simulateBotResponse = (userMessage: string, categoryType?: string): string => {
     // Enhanced response simulation based on category type
@@ -117,8 +184,6 @@ export default function ChatbotPage() {
   }
 
   const handleCategoryAction = (categoryId: string) => {
-    setShowQuickActions(false)
-    
     const category = newsCategories.find(c => c.id === categoryId)
     if (category) {
       const categoryMessage: Message = {
@@ -218,17 +283,89 @@ export default function ChatbotPage() {
   }
 
   return (
-    <div className="h-screen bg-white flex">
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl h-screen flex bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col bg-white">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 p-4">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
+        <div className="bg-white border-b border-gray-200 py-8 px-4 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             AI Chatbot
           </h1>
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-600 text-base max-w-2xl mx-auto">
             Chat with our AI assistant. Ask questions, get help, or just have a conversation!
           </p>
+        </div>
+
+        {/* Recent Headlines Carousel */}
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 py-8">
+          <div className="px-4 mb-6">
+            <h3 className="text-xl font-bold text-gray-900 text-center">Recent Headlines</h3>
+          </div>
+          
+          <div className="relative max-w-5xl mx-auto px-4">
+            {/* Carousel Container */}
+            <div className="overflow-hidden rounded-lg">
+              <div 
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * (100/3)}%)` }}
+              >
+                {headlines.map((headline, index) => (
+                  <div key={headline.id} className="w-1/3 flex-shrink-0 px-2">
+                    <button 
+                      onClick={() => handleTopicClick(headline.title)}
+                      className="w-full bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 text-left border border-gray-200 hover:border-gray-300 h-full"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="text-2xl">{headline.emoji}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="inline-block px-2 py-1 bg-black text-white text-xs font-medium rounded-full">
+                              {headline.category}
+                            </span>
+                            <span className="text-xs text-gray-500">{headline.time}</span>
+                          </div>
+                          <h4 className="text-base font-bold text-gray-900 mb-2 line-clamp-1">
+                            {headline.title}
+                          </h4>
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {headline.subtitle}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Navigation Arrows */}
+            <button
+              onClick={prevSlide}
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-shadow border border-gray-200"
+            >
+              <ChevronLeftIcon className="w-5 h-5 text-gray-600" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-shadow border border-gray-200"
+            >
+              <ChevronRightIcon className="w-5 h-5 text-gray-600" />
+            </button>
+
+            {/* Dots Indicator */}
+            <div className="flex justify-center mt-4 space-x-2">
+              {Array.from({ length: Math.max(1, headlines.length - 2) }, (_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === currentSlide ? 'bg-black' : 'bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Chat Container */}
@@ -306,56 +443,36 @@ export default function ChatbotPage() {
               </div>
             )}
 
-            {/* News Categories Menu */}
-            {showQuickActions && (
-              <div className="mb-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  {newsCategories.map((category) => (
-                    <button
-                      key={category.id}
-                      onClick={() => handleCategoryAction(category.id)}
-                      className="flex flex-col items-center p-4 text-center rounded-lg hover:bg-white transition-colors border border-gray-200 bg-white"
-                    >
-                      <div className="mb-2 text-gray-600">
-                        {category.icon}
-                      </div>
-                      <div className="font-medium text-sm text-gray-900 mb-1">
-                        {category.label}
-                      </div>
-                      <div className="text-xs text-gray-500 leading-tight">
-                        {category.description}
-                      </div>
-                    </button>
-                  ))}
-                </div>
+            {/* News Categories - Always Visible */}
+            <div className="mb-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {newsCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategoryAction(category.id)}
+                    className="flex flex-col items-center p-3 text-center rounded-lg hover:bg-white hover:shadow-sm transition-all border border-gray-200 bg-white"
+                  >
+                    <div className="mb-2 text-gray-600">
+                      {category.icon}
+                    </div>
+                    <div className="font-medium text-sm text-gray-900 mb-1">
+                      {category.label}
+                    </div>
+                    <div className="text-xs text-gray-500 leading-tight">
+                      {category.description}
+                    </div>
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
 
             <div className="flex space-x-2">
-              {/* Quick Actions Toggle */}
-              <button
-                onClick={() => setShowQuickActions(!showQuickActions)}
-                className={`p-2 rounded-lg transition-colors ${
-                  showQuickActions 
-                    ? 'bg-black text-white' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-                title="News categories"
-              >
-                {showQuickActions ? (
-                  <XMarkIcon className="w-5 h-5" />
-                ) : (
-                  <PlusIcon className="w-5 h-5" />
-                )}
-              </button>
-
-              {/* Message Input */}
               {/* Message Input */}
               <textarea
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message here..."
+                placeholder="Ask me anything or click a news category above! 💬"
                 className="flex-1 resize-none rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900 min-h-[44px] max-h-32"
                 rows={1}
                 disabled={isTyping}
@@ -380,68 +497,11 @@ export default function ChatbotPage() {
             />
             
             <p className="text-xs text-gray-500 mt-2">
-              Press Enter to send, Shift+Enter for new line • Use + for news categories
+              Press Enter to send, Shift+Enter for new line • Click category buttons above to get news updates
             </p>
           </div>
         </div>
       </div>
-
-      {/* Right Sidebar */}
-      <div className="w-64 bg-gray-50 border-l border-gray-200 p-4 overflow-y-auto">
-        {/* News Categories */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">News Categories</h2>
-          <div className="space-y-2">
-            <button 
-              onClick={() => handleTopicClick('World News')}
-              className="w-full p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-left flex items-center"
-            >
-              <GlobeAltIcon className="w-5 h-5 mr-3 text-gray-600" />
-              <span className="text-gray-800 text-sm font-medium">World News</span>
-            </button>
-            <button 
-              onClick={() => handleTopicClick('Sports')}
-              className="w-full p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-left flex items-center"
-            >
-              <UserIcon className="w-5 h-5 mr-3 text-gray-600" />
-              <span className="text-gray-800 text-sm font-medium">Sports</span>
-            </button>
-            <button 
-              onClick={() => handleTopicClick('Technology')}
-              className="w-full p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-left flex items-center"
-            >
-              <ComputerDesktopIcon className="w-5 h-5 mr-3 text-gray-600" />
-              <span className="text-gray-800 text-sm font-medium">Tech</span>
-            </button>
-            <button 
-              onClick={() => handleTopicClick('Local News')}
-              className="w-full p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-left flex items-center"
-            >
-              <MapPinIcon className="w-5 h-5 mr-3 text-gray-600" />
-              <span className="text-gray-800 text-sm font-medium">Local</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Recent Headlines */}
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Headlines</h2>
-          <div className="space-y-3">
-            <button 
-              onClick={() => handleTopicClick('Breaking: Major Tech Announcement')}
-              className="w-full p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-left"
-            >
-              <span className="text-gray-800 text-sm font-medium">Breaking: Major Tech Announcement</span>
-            </button>
-            <button 
-              onClick={() => handleTopicClick('Sports Championship Results')}
-              className="w-full p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-left"
-            >
-              <div className="text-gray-800 text-sm font-medium">Sports Championship</div>
-              <div className="text-gray-800 text-sm font-medium">Results</div>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )
