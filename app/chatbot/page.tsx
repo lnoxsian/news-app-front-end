@@ -196,6 +196,30 @@ export default function ChatbotPage() {
     }, 1000 + Math.random() * 2000) // 1-3 second delay
   }
 
+  const handleTopicClick = (topic: string) => {
+    const topicMessage: Message = {
+      id: Date.now(),
+      text: `Tell me about ${topic}`,
+      sender: 'user',
+      timestamp: new Date()
+    }
+    
+    setMessages(prev => [...prev, topicMessage])
+    setIsTyping(true)
+
+    setTimeout(() => {
+      const botResponse: Message = {
+        id: Date.now() + 1,
+        text: simulateBotResponse(`Tell me about ${topic}`, 'research'),
+        sender: 'bot',
+        timestamp: new Date()
+      }
+      
+      setMessages(prev => [...prev, botResponse])
+      setIsTyping(false)
+    }, 1500 + Math.random() * 2000)
+  }
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -209,53 +233,20 @@ export default function ChatbotPage() {
 
   return (
     <div className="h-screen bg-white flex">
-      {/* Left Sidebar */}
-      <div className="w-64 bg-gray-50 border-r border-gray-200 p-4 overflow-y-auto">
-        {/* Trending Topics */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Trending Topics</h2>
-          <div className="space-y-2">
-            <div className="p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow cursor-pointer">
-              <span className="text-gray-800 text-sm font-medium">Elections</span>
-            </div>
-            <div className="p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow cursor-pointer">
-              <span className="text-gray-800 text-sm font-medium">Climate Change</span>
-            </div>
-            <div className="p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow cursor-pointer">
-              <span className="text-gray-800 text-sm font-medium">Tech Giants</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Related Stories */}
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Related Stories</h2>
-          <div className="space-y-3">
-            <div className="p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow cursor-pointer">
-              <span className="text-gray-800 text-sm font-medium">Election Updates</span>
-            </div>
-            <div className="p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow cursor-pointer">
-              <div className="text-gray-800 text-sm font-medium">Climate Summit</div>
-              <div className="text-gray-800 text-sm font-medium">Announced</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">
-          AI Chatbot
-        </h1>
-        <p className="text-gray-600 text-sm">
-          Chat with our AI assistant. Ask questions, get help, or just have a conversation!
-        </p>
-      </div>
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 p-4">
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">
+            AI Chatbot
+          </h1>
+          <p className="text-gray-600 text-sm">
+            Chat with our AI assistant. Ask questions, get help, or just have a conversation!
+          </p>
+        </div>
 
-      {/* Chat Container */}
-      <div className="flex-1 flex flex-col bg-white">
+        {/* Chat Container */}
+        <div className="flex-1 flex flex-col bg-white">
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.map((message) => (
@@ -331,24 +322,22 @@ export default function ChatbotPage() {
 
             {/* Quick Actions Menu */}
             {showQuickActions && (
-              <div className="mb-4 bg-gray-50 rounded-lg p-2 border border-gray-200">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="mb-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                   {quickActions.map((action) => (
                     <button
                       key={action.id}
                       onClick={() => handleQuickAction(action.id)}
-                      className="flex items-center p-3 text-left rounded-lg hover:bg-white transition-colors"
+                      className="flex flex-col items-center p-4 text-center rounded-lg hover:bg-white transition-colors border border-gray-200 bg-white"
                     >
-                      <div className="mr-3 text-gray-600">
+                      <div className="mb-2 text-gray-600">
                         {action.icon}
                       </div>
-                      <div>
-                        <div className="font-medium text-sm text-gray-900">
-                          {action.label}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {action.description}
-                        </div>
+                      <div className="font-medium text-sm text-gray-900 mb-1">
+                        {action.label}
+                      </div>
+                      <div className="text-xs text-gray-500 leading-tight">
+                        {action.description}
                       </div>
                     </button>
                   ))}
@@ -410,5 +399,54 @@ export default function ChatbotPage() {
           </div>
         </div>
       </div>
-    )
-  }
+
+      {/* Right Sidebar */}
+      <div className="w-64 bg-gray-50 border-l border-gray-200 p-4 overflow-y-auto">
+        {/* Trending Topics */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Trending Topics</h2>
+          <div className="space-y-2">
+            <button 
+              onClick={() => handleTopicClick('Elections')}
+              className="w-full p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-left"
+            >
+              <span className="text-gray-800 text-sm font-medium">Elections</span>
+            </button>
+            <button 
+              onClick={() => handleTopicClick('Climate Change')}
+              className="w-full p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-left"
+            >
+              <span className="text-gray-800 text-sm font-medium">Climate Change</span>
+            </button>
+            <button 
+              onClick={() => handleTopicClick('Tech Giants')}
+              className="w-full p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-left"
+            >
+              <span className="text-gray-800 text-sm font-medium">Tech Giants</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Related Stories */}
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Related Stories</h2>
+          <div className="space-y-3">
+            <button 
+              onClick={() => handleTopicClick('Election Updates')}
+              className="w-full p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-left"
+            >
+              <span className="text-gray-800 text-sm font-medium">Election Updates</span>
+            </button>
+            <button 
+              onClick={() => handleTopicClick('Climate Summit')}
+              className="w-full p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow text-left"
+            >
+              <div className="text-gray-800 text-sm font-medium">Climate Summit</div>
+              <div className="text-gray-800 text-sm font-medium">Announced</div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
