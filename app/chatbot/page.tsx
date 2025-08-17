@@ -284,7 +284,7 @@ export default function ChatbotPage() {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl h-screen flex bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+      <div className="w-full max-w-6xl h-screen flex bg-white rounded-lg border border-gray-200 overflow-hidden">
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col bg-white">
         {/* Header */}
